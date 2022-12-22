@@ -1,0 +1,52 @@
+baseurl = "https://hrjn.github.io"
+title = "H's blog"
+theme = "hugo-coder"
+languagecode = "en"
+defaultcontentlanguage = "en"
+
+paginate = 10
+
+pygmentsstyle = "bw"
+pygmentscodefences = true
+pygmentscodefencesguesssyntax = true
+
+
+[params]
+  author = "Harizo Rajaona"
+  info = "Yet another tinkerer"
+  description = "Where learnings and tinkerings are written down"
+  keywords = "blog,developer,personal"
+  avatarurl = "images/avatar.png"
+
+  favicon_32 = "/images/favicon-32x32.ico"
+  favicon_16 = "/images/favicon-16x16.ico"
+
+  since = 2022
+
+  enableTwemoji = true
+
+  colorScheme = "auto"
+  hidecolorschemetoggle = false
+
+[taxonomies]
+  category = "categories"
+  series = "series"
+  tag = "tags"
+  author = "authors"
+
+# Social links
+[[params.social]]
+  name = "Github"
+  icon = "fa fa-github fa-2x"
+  weight = 1
+  url = "https://github.com/hrjn/"
+
+# Menu links
+[[menu.main]]
+  name = "Blog"
+  weight = 1
+  url  = "posts/"
+[[menu.main]]
+  name = "About"
+  weight = 2
+  url = "about/"
