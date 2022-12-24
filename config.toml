@@ -12,9 +12,8 @@ pygmentscodefencesguesssyntax = true
 
 
 [params]
-  author = "Harizo Rajaona"
-  info = "Yet another tinkerer"
-  description = "Where learnings and tinkerings are written down"
+  #author = "Harizo Rajaona"
+  info = "Where learnings and tinkerings are written down"
   keywords = "blog,developer,personal"
   avatarurl = "images/avatar.png"
 
@@ -38,8 +37,14 @@ pygmentscodefencesguesssyntax = true
 [[params.social]]
   name = "Github"
   icon = "fa fa-github fa-2x"
-  weight = 1
+  weight = 2
   url = "https://github.com/hrjn/"
+
+[[params.social]]
+  name = "Linkedin"
+  icon = "fa fa-linkedin fa-2x"
+  weigt = 1
+  url = "https://www.linkedin.com/in/harizorajaona/"
 
 # Menu links
 [[menu.main]]
