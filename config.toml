@@ -6,7 +6,7 @@ defaultcontentlanguage = "en"
 
 paginate = 10
 
-pygmentsstyle = "bw"
+pygmentsstyle = "lovelace"
 pygmentscodefences = true
 pygmentscodefencesguesssyntax = true
 
@@ -24,7 +24,7 @@ pygmentscodefencesguesssyntax = true
 
   enableTwemoji = true
 
-  colorScheme = "auto"
+  colorScheme = "light"
   hidecolorschemetoggle = false
 
 [taxonomies]
@@ -55,3 +55,4 @@ pygmentscodefencesguesssyntax = true
   name = "About"
   weight = 2
   url = "about/"
+
