@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang='en-US'>
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust is (too?) defensive</title>
+  <meta name="description" content="Day 1 of this year's Advent of Code challenge was not easy. Yes, there is the
+infamous part 2 where outliers like twone or eightwo might have caused you
+some trouble, but in my case there was also something else.">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <link rel="canonical" href="https://hrjn.github.io/2023/12/02/rust-defensive.html">
+  <link rel="alternate" type="application/rss+xml" title="hrjn" href="https://hrjn.github.io/feed.xml">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <style>
+  @font-face {
+    font-family: 'Open Sans'; src: url('/css/OpenSans-300-Normal.woff2') format('woff2');
+    font-weight: 300; font-style: normal;
+  }
+  @font-face {
+    font-family: 'JetBrains Mono'; src: url('/css/JetBrainsMono-400-Normal.woff2') format('woff2');
+    font-weight: 400; font-style: normal;
+  }
+  @font-face {
+    font-family: 'JetBrains Mono'; src: url('/css/JetBrainsMono-700-Normal.woff2') format('woff2');
+    font-weight: 700; font-style: normal;
+  }
+  @font-face {
+    font-family: 'EB Garamond'; src: url('/css/EBGaramond-400-Normal.woff2') format('woff2');
+    font-weight: 400; font-style: normal;
+  }
+  @font-face {
+    font-family: 'EB Garamond'; src: url('/css/EBGaramond-400-Italic.woff2') format('woff2');
+    font-weight: 400; font-style: italic;
+  }
+  @font-face {
+    font-family: 'EB Garamond'; src: url('/css/EBGaramond-700-Normal.woff2') format('woff2');
+    font-weight: 700; font-style: normal;
+  }
+  @font-face {
+    font-family: 'EB Garamond'; src: url('/css/EBGaramond-700-Italic.woff2') format('woff2');
+    font-weight: 700; font-style: italic;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; margin-block-start: 0; margin-block-end: 0; }
+
+  body {
+    max-width: 80ch;
+    padding: 2ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  header { margin-bottom: 2rem; }
+  header > nav { display: flex; column-gap: 2ch; align-items: baseline; flex-wrap: wrap; }
+  header a { font-style: normal; color: rgba(0, 0, 0, .8); text-decoration: none; }
+  header a:hover { color: rgba(0, 0, 0, .8); text-decoration: underline; }
+  header .title { font-size: 1.25em; flex-grow: 2; }
+
+  footer { margin-top: 2rem; }
+  footer > p { display: flex; column-gap: 2ch; justify-content: center; flex-wrap: wrap; }
+  footer a { color: rgba(0, 0, 0, .8); text-decoration: none; white-space: nowrap; }
+  footer i { vertical-align: middle; color: rgba(0, 0, 0, .8) }
+
+  </style>
+
+  <link rel="stylesheet" href="/css/main.css">
+  
+</head>
+
+<body>
+  <header>
+    <nav>
+      <a class="title" href="/">hrjn</a>
+      <a href="/about.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+  <article >
+
+    <h1>
+    <a href="#Rust-is-too-defensive"><span>Rust is (too?) defensive</span> <time datetime="2023-12-02">Dec 2, 2023</time></a>
+    </h1>
+<p><span>Day 1 of this year</span>&rsquo;<span>s Advent of Code challenge was not easy. Yes, there is the</span>
+<span>infamous part 2 where outliers like </span><code>twone</code><span> or </span><code>eightwo</code><span> might have caused you</span>
+<span>some trouble, but in my case there was also something else.</span></p>
+<p><span>I wanted to implement a solution in Rust, and I got reminded the hard way that</span>
+<span>it is a (very) defensive language:</span></p>
+<ul>
+<li>
+<p><span>When you open a file using </span><code>std::fs::File::open()</code><span> you get a</span>
+<code>std::io::Result&lt;File&gt;</code><span> enum that you need to handle properly:</span></p>
+
+<figure class="code-block">
+
+
+<pre><code><span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">path</span> = Path::<span class="hl-title function_ invoke__">new</span>(<span class="hl-string">&quot;file.txt&quot;</span>);</span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">display</span> = path.<span class="hl-title function_ invoke__">display</span>();</span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-keyword">mut </span><span class="hl-variable">file</span> = <span class="hl-keyword">match</span> File::<span class="hl-title function_ invoke__">open</span>(&amp;path) {</span>
+<span class="line">    <span class="hl-title function_ invoke__">Ok</span>(file) =&gt; file,</span>
+<span class="line">    <span class="hl-title function_ invoke__">Err</span>(e) =&gt; <span class="hl-built_in">panic!</span>(<span class="hl-string">&quot;Could not open {}: {}&quot;</span>, display, e)</span>
+<span class="line">};</span></code></pre>
+
+</figure>
+</li>
+<li>
+<p><span>When manipulating strings, you have to pay attention on the items at hand:</span>
+<span>playing with string slices (</span><code>&amp;str</code><span>) is not the same as with </span><code>String</code><span> objects.</span>
+<span>Try mixing them, and the compiler will scold you.</span></p>
+</li>
+<li>
+<p><span>Moving from strings to numbers should be done carefully:</span></p>
+</li>
+</ul>
+
+<figure class="code-block">
+
+
+<pre><code><span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">eight_str</span> = <span class="hl-string">&quot;8&quot;</span>;</span>
+<span class="line"></span>
+<span class="line"><span class="hl-comment">// YOLO-ish style</span></span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">eight_digit</span> = eight_str.parse::&lt;<span class="hl-type">i32</span>&gt;().<span class="hl-title function_ invoke__">unwrap</span>();</span>
+<span class="line"></span>
+<span class="line"><span class="hl-comment">// Cleaner</span></span>
+<span class="line"><span class="hl-keyword">match</span> eight_str.parse::&lt;<span class="hl-type">i32</span>&gt;() {</span>
+<span class="line">    <span class="hl-title function_ invoke__">Ok</span>(value) =&gt; {</span>
+<span class="line">        <span class="hl-keyword">let</span> <span class="hl-variable">eight_digit</span> = value;</span>
+<span class="line">    }</span>
+<span class="line">    <span class="hl-title function_ invoke__">Err</span>(e) =&gt; {</span>
+<span class="line">        eprintln!(<span class="hl-string">&quot;Parsing error! {}&quot;</span>, e);</span>
+<span class="line">    }</span>
+<span class="line">}</span></code></pre>
+
+</figure>
+<p><span>Still, it is ok to use </span><code>unwrap()</code><span> in non-critical use-cases, you can read</span>
+<a href="https://blog.burntsushi.net/unwrap/#what-is-unwrap"><span>this blog post</span></a><span> for more</span>
+<span>details.</span></p>
+<p><span>I don</span>&rsquo;<span>t consider myself proficient in Rust so that</span>&rsquo;<span>s probably why it</span>&rsquo;<span>s taking me</span>
+<span>much more time to solve the puzzles 🙂 Even so, compared to Python, it feels</span>
+<em><span>safer</span></em><span> to write Rust code when you see how many guardrails are at your</span>
+<span>disposal.</span></p>
+<p><span>Sure, you may want to discard them if you are in a hurry to grab some stars for</span>
+<span>your leaderboard but that</span>&rsquo;<span>s another story 😄</span></p>
+</article>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <a href="/feed.xml">
+        <svg class="icon"><use href="/assets/icons.svg#rss"/></svg>
+        Subscribe
+      </a>
+      <a href="https://github.com/hrjn">
+        <svg class="icon"><use href="/assets/icons.svg#github"/></svg>
+        hrjn
+      </a>
+    </p>
+  </footer>
+</body>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+</html>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<link href="https://hrjn.github.io/feed.xml" rel="self" type="application/atom+xml"/>
+<link href="https://hrjn.github.io" rel="alternate" type="text/html"/>
+<updated>2023-12-02T21:22:24.022Z</updated>
+<id>https://hrjn.github.io/feed.xml</id>
+<title type="html">hrjn</title>
+<subtitle>Yet another programming blog by Harizo Rajaona aka hrjn.</subtitle>
+<author><name>Harizo Rajaona</name></author>
+
+<entry>
+<title type="text">Rust is (too?) defensive</title>
+<link href="https://hrjn.github.io/2023/12/02/rust-defensive.html" rel="alternate" type="text/html" title="Rust is (too?) defensive" />
+<published>2023-12-02T00:00:00+00:00</published>
+<updated>2023-12-02T00:00:00+00:00</updated>
+<id>https://hrjn.github.io/2023/12/02/rust-defensive</id>
+<author><name>Harizo Rajaona</name></author>
+<summary type="html"><![CDATA[Day 1 of this year's Advent of Code challenge was not easy. Yes, there is the
+infamous part 2 where outliers like twone or eightwo might have caused you
+some trouble, but in my case there was also something else.]]></summary>
+<content type="html" xml:base="https://hrjn.github.io/2023/12/02/rust-defensive.html"><![CDATA[
+    <h1>
+    <a href="#Rust-is-too-defensive"><span>Rust is (too?) defensive</span> <time datetime="2023-12-02">Dec 2, 2023</time></a>
+    </h1>
+<p><span>Day 1 of this year</span>&rsquo;<span>s Advent of Code challenge was not easy. Yes, there is the</span>
+<span>infamous part 2 where outliers like </span><code>twone</code><span> or </span><code>eightwo</code><span> might have caused you</span>
+<span>some trouble, but in my case there was also something else.</span></p>
+<p><span>I wanted to implement a solution in Rust, and I got reminded the hard way that</span>
+<span>it is a (very) defensive language:</span></p>
+<ul>
+<li>
+<p><span>When you open a file using </span><code>std::fs::File::open()</code><span> you get a</span>
+<code>std::io::Result&lt;File&gt;</code><span> enum that you need to handle properly:</span></p>
+
+<figure class="code-block">
+
+
+<pre><code><span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">path</span> = Path::<span class="hl-title function_ invoke__">new</span>(<span class="hl-string">&quot;file.txt&quot;</span>);</span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">display</span> = path.<span class="hl-title function_ invoke__">display</span>();</span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-keyword">mut </span><span class="hl-variable">file</span> = <span class="hl-keyword">match</span> File::<span class="hl-title function_ invoke__">open</span>(&amp;path) {</span>
+<span class="line">    <span class="hl-title function_ invoke__">Ok</span>(file) =&gt; file,</span>
+<span class="line">    <span class="hl-title function_ invoke__">Err</span>(e) =&gt; <span class="hl-built_in">panic!</span>(<span class="hl-string">&quot;Could not open {}: {}&quot;</span>, display, e)</span>
+<span class="line">};</span></code></pre>
+
+</figure>
+</li>
+<li>
+<p><span>When manipulating strings, you have to pay attention on the items at hand:</span>
+<span>playing with string slices (</span><code>&amp;str</code><span>) is not the same as with </span><code>String</code><span> objects.</span>
+<span>Try mixing them, and the compiler will scold you.</span></p>
+</li>
+<li>
+<p><span>Moving from strings to numbers should be done carefully:</span></p>
+</li>
+</ul>
+
+<figure class="code-block">
+
+
+<pre><code><span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">eight_str</span> = <span class="hl-string">&quot;8&quot;</span>;</span>
+<span class="line"></span>
+<span class="line"><span class="hl-comment">// YOLO-ish style</span></span>
+<span class="line"><span class="hl-keyword">let</span> <span class="hl-variable">eight_digit</span> = eight_str.parse::&lt;<span class="hl-type">i32</span>&gt;().<span class="hl-title function_ invoke__">unwrap</span>();</span>
+<span class="line"></span>
+<span class="line"><span class="hl-comment">// Cleaner</span></span>
+<span class="line"><span class="hl-keyword">match</span> eight_str.parse::&lt;<span class="hl-type">i32</span>&gt;() {</span>
+<span class="line">    <span class="hl-title function_ invoke__">Ok</span>(value) =&gt; {</span>
+<span class="line">        <span class="hl-keyword">let</span> <span class="hl-variable">eight_digit</span> = value;</span>
+<span class="line">    }</span>
+<span class="line">    <span class="hl-title function_ invoke__">Err</span>(e) =&gt; {</span>
+<span class="line">        eprintln!(<span class="hl-string">&quot;Parsing error! {}&quot;</span>, e);</span>
+<span class="line">    }</span>
+<span class="line">}</span></code></pre>
+
+</figure>
+<p><span>Still, it is ok to use </span><code>unwrap()</code><span> in non-critical use-cases, you can read</span>
+<a href="https://blog.burntsushi.net/unwrap/#what-is-unwrap"><span>this blog post</span></a><span> for more</span>
+<span>details.</span></p>
+<p><span>I don</span>&rsquo;<span>t consider myself proficient in Rust so that</span>&rsquo;<span>s probably why it</span>&rsquo;<span>s taking me</span>
+<span>much more time to solve the puzzles 🙂 Even so, compared to Python, it feels</span>
+<em><span>safer</span></em><span> to write Rust code when you see how many guardrails are at your</span>
+<span>disposal.</span></p>
+<p><span>Sure, you may want to discard them if you are in a hurry to grab some stars for</span>
+<span>your leaderboard but that</span>&rsquo;<span>s another story 😄</span></p>
+]]></content>
+</entry>
+
+</feed>
