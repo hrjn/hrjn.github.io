@@ -1,0 +1,55 @@
+# Rust is (too?) defensive
+
+Day 1 of this year's Advent of Code challenge was not easy. Yes, there is the
+infamous part 2 where outliers like `twone` or `eightwo` might have caused you
+some trouble, but in my case there was also something else.
+
+I wanted to implement a solution in Rust, and I got reminded the hard way that
+it is a (very) defensive language:
+
+- When you open a file using `std::fs::File::open()` you get a
+  `std::io::Result<File>` enum that you need to handle properly:
+
+  ```rust
+  let path = Path::new("file.txt");
+  let display = path.display();
+  let mut file = match File::open(&path) {
+      Ok(file) => file,
+      Err(e) => panic!("Could not open {}: {}", display, e)
+  };
+  ```
+
+- When manipulating strings, you have to pay attention on the items at hand:
+  playing with string slices (`&str`) is not the same as with `String` objects.
+  Try mixing them, and the compiler will scold you.
+
+- Moving from strings to numbers should be done carefully:
+
+```rust
+let eight_str = "8";
+
+// YOLO-ish style
+let eight_digit = eight_str.parse::<i32>().unwrap();
+
+// Cleaner
+match eight_str.parse::<i32>() {
+    Ok(value) => {
+        let eight_digit = value;
+    }
+    Err(e) => {
+        eprintln!("Parsing error! {}", e);
+    }
+}
+```
+
+Still, it is ok to use `unwrap()` in non-critical use-cases, you can read
+[this blog post](https://blog.burntsushi.net/unwrap/#what-is-unwrap) for more
+details.
+
+I don't consider myself proficient in Rust so that's probably why it's taking me
+much more time to solve the puzzles 🙂 Even so, compared to Python, it feels
+_safer_ to write Rust code when you see how many guardrails are at your
+disposal.
+
+Sure, you may want to discard them if you are in a hurry to grab some stars for
+your leaderboard but that's another story 😄
